@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#b85d73">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Ateliê de Croché & Renda</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="static/icons/icon-192.png">
+  <link rel="icon" type="image/png" href="static/icons/icon-192.png">
+  <link rel="stylesheet" href="static/css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- CABEÇALHO -->
+    <header class="top-header">
+      <div class="brand">
+        <img src="static/icons/icon-192.png" alt="Ateliê de Croché & Renda">
+        <div class="brand-txt">
+          <strong>Ateliê de Croché & Renda</strong>
+          <span>Miniaturas, Rendas & Esquemas</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnInstallApp" class="install-btn" title="Instalar no Ecrã Principal">📲 Instalar</button>
+        <button id="btnOpenBackup" class="icon-btn" title="Cópia de Segurança & QR Code">💾</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- SEPARADOR 1: VÍDEOS & AULAS -->
+      <section id="tabVideos" class="tab-pane active">
+        <div class="card">
+          <h2 class="section-title">🎥 Vídeos & Aulas em Português</h2>
+          <div id="videoCatChips" class="chip-row">
+            <button class="chip active" data-cat="Todos">Todos</button>
+            <button class="chip" data-cat="Pontos Base">Pontos Base</button>
+            <button class="chip" data-cat="Flores em Miniatura">Flores em Miniatura</button>
+            <button class="chip" data-cat="Miniaturas Amigurumi">Miniaturas Amigurumi</button>
+            <button class="chip" data-cat="Rendas e Bicos">Rendas e Bicos</button>
+          </div>
+
+          <!-- Leitor Integrado -->
+          <div id="videoPlayerWrap" class="video-player-wrap">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong id="playerTitle" style="font-size:13.5px;">A reproduzir...</strong>
+              <button id="btnClosePlayer" class="btn btn-sm">✕ Fechar</button>
+            </div>
+            <iframe id="videoIframe" class="video-frame" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          </div>
+        </div>
+
+        <!-- Pesquisa Direta YouTube em Português -->
+        <div class="card">
+          <h3 class="section-title">🔎 Pesquisar Aulas no YouTube (PT)</h3>
+          <div class="chip-row">
+            <a class="btn btn-sm" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=croche+pontos+base+iniciantes+portugues">🧶 Pontos Base</a>
+            <a class="btn btn-sm" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=flores+croche+miniatura+passo+a+passo">🌸 Flores Miniatura</a>
+            <a class="btn btn-sm" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=amigurumi+miniatura+croche+portugues">🧸 Amigurumi</a>
+            <a class="btn btn-sm" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=bicos+de+renda+croche+passo+a+passo+portugues">🪡 Rendas e Bicos</a>
+          </div>
+        </div>
+
+        <!-- Adicionar Novo Vídeo Favorito -->
+        <div class="card">
+          <h3 class="section-title">➕ Guardar Vídeo Favorito</h3>
+          <input id="vidTitleInput" class="input" placeholder="Título do vídeo (ex: Flor miniatura fácil)">
+          <select id="vidCatInput" class="input">
+            <option value="Pontos Base">Pontos Base</option>
+            <option value="Flores em Miniatura">Flores em Miniatura</option>
+            <option value="Miniaturas Amigurumi">Miniaturas Amigurumi</option>
+            <option value="Rendas e Bicos">Rendas e Bicos</option>
+          </select>
+          <input id="vidUrlInput" class="input" type="url" placeholder="Cole o link do YouTube (ex: https://youtu.be/...)">
+          <button id="btnAddVideo" class="btn btn-rose">💾 Guardar Vídeo na Lista</button>
+        </div>
+
+        <div id="videosList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </section>
+
+      <!-- SEPARADOR 2: IMAGENS & ESQUEMAS -->
+      <section id="tabImagens" class="tab-pane">
+        <div class="card">
+          <h2 class="section-title">🖼️ Os Meus Esquemas & Trabalhos</h2>
+          <p class="muted" style="margin:0;">Toque em qualquer imagem ou gráfico para ampliar com zoom. Guarde fotos dos seus esquemas e miniaturas concluídas.</p>
+          <input id="photoTitleInput" class="input" placeholder="Nome do esquema ou trabalho (opcional)">
+          <label class="btn btn-rose" style="cursor:pointer;">
+            📷 Tirar Foto / Escolher da Galeria
+            <input id="photoFileInput" type="file" accept="image/*" capture="environment" style="display:none;">
+          </label>
+        </div>
+
+        <h3 class="section-title" style="padding:0 4px;">📐 Esquemas Gráficos de Referência</h3>
+        <div id="builtinGallery" class="gallery-grid"></div>
+
+        <h3 class="section-title" style="padding:0 4px;">📸 A Minha Galeria Guardada</h3>
+        <div id="userGallery" class="gallery-grid"></div>
+      </section>
+
+      <!-- SEPARADOR 3: GUIA & CONTADOR -->
+      <section id="tabGuia" class="tab-pane">
+        <!-- Contador de Carreiras -->
+        <div class="card">
+          <h2 class="section-title">🧶 Contador de Carreiras</h2>
+          <div style="display:flex;gap:8px;">
+            <input id="projectNameInput" class="input" placeholder="Nome do projeto atual (ex: Bico Toalha)">
+            <button id="btnSaveProject" class="btn btn-sage btn-sm">💾</button>
+          </div>
+
+          <div class="counter-box">
+            <span class="muted">Carreira Atual</span>
+            <div id="counterValue" class="counter-num">0</div>
+            <div class="counter-btns">
+              <button id="btnCountMinus" class="counter-big-btn" style="background:#f3e5df;color:var(--text);">−1</button>
+              <button id="btnCountPlus" class="counter-big-btn" style="background:var(--rose);color:#fff;">+1 Carreira</button>
+              <button id="btnCountReset" class="counter-big-btn" style="background:#fdecec;color:var(--danger);font-size:15px;">Zerar</button>
+            </div>
+          </div>
+
+          <div id="savedProjectsList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <!-- Tabela Linhas & Agulhas para Miniaturas -->
+        <div class="card">
+          <h2 class="section-title">🪡 Tabela Prática: Linhas Finas & Agulhas</h2>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>Linha</th>
+                <th>Agulha</th>
+                <th>Uso Ideal</th>
+              </tr>
+            </thead>
+            <tbody id="threadHookBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Dicionário Ilustrado dos Pontos -->
+        <div class="card">
+          <h2 class="section-title">📖 Dicionário Ilustrado de Pontos</h2>
+          <div id="stitchDictGrid" class="stitch-grid"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- NAVEGAÇÃO INFERIOR -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="tabVideos">
+        <span class="ico">🎥</span>
+        <span>Vídeos & Aulas</span>
+      </button>
+      <button class="nav-btn" data-tab="tabImagens">
+        <span class="ico">🖼️</span>
+        <span>Esquemas</span>
+      </button>
+      <button class="nav-btn" data-tab="tabGuia">
+        <span class="ico">🧶</span>
+        <span>Guia & Contador</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL: ZOOM PARA IMAGENS & ESQUEMAS -->
+  <div id="zoomModal" class="modal-backdrop">
+    <div style="color:#fff;font-weight:700;margin-bottom:8px;text-align:center;" id="zoomTitle">Esquema</div>
+    <div class="zoom-stage">
+      <img id="zoomImg" src="" alt="Esquema ampliado">
+    </div>
+    <div class="zoom-toolbar">
+      <button id="btnZoomOut" class="btn btn-sm">➖ Reduzir</button>
+      <button id="btnZoomReset" class="btn btn-sm">100%</button>
+      <button id="btnZoomIn" class="btn btn-sm btn-rose">➕ Ampliar</button>
+      <button id="btnZoomClose" class="btn btn-sm">✕ Fechar</button>
+    </div>
+  </div>
+
+  <!-- MODAL: CÓPIA DE SEGURANÇA & QR CODE -->
+  <div id="backupModal" class="modal-backdrop">
+    <div class="card" style="width:100%;max-width:440px;max-height:86dvh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 class="section-title">💾 Cópia de Segurança & Telemóvel</h3>
+        <button id="btnCloseBackup" class="btn btn-sm">✕</button>
+      </div>
+
+      <p class="muted" style="margin:0;">Exporte todos os seus projetos, vídeos favoritos e fotos guardadas num único ficheiro JSON, ou restaure uma cópia anterior.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="btnExportBackup" class="btn btn-rose" style="flex:1;">📤 Exportar JSON</button>
+        <label class="btn btn-sage" style="flex:1;cursor:pointer;">
+          📥 Importar JSON
+          <input id="importBackupInput" type="file" accept=".json,application/json" style="display:none;">
+        </label>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:10px;text-align:center;">
+        <div style="font-weight:700;font-size:13.5px;margin-bottom:6px;">📱 Abrir no Telemóvel (GitHub Pages)</div>
+        <img src="static/qrcode_github.png" alt="QR Code Ateliê de Croché" style="width:155px;height:155px;border-radius:10px;border:1px solid var(--border);background:#fff;padding:4px;">
+        <div style="margin-top:6px;font-size:12px;word-break:break-all;">
+          <a href="https://viegas5113-design.github.io/croche-miniaturas/" target="_blank" style="color:var(--rose);font-weight:700;">https://viegas5113-design.github.io/croche-miniaturas/</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="static/js/db.js"></script>
+  <script src="static/js/charts.js"></script>
+  <script src="static/js/app.js"></script>
+</body>
+</html>
