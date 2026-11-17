@@ -33,12 +33,15 @@
     </header>
 
     <main class="main-content">
-      <!-- SEPARADOR 1: VÍDEOS & AULAS -->
+      <!-- SEPARADOR 1: TUTORIAIS EM VÍDEO -->
       <section id="tabVideos" class="tab-pane active">
         <div class="card">
-          <h2 class="section-title">🎥 Vídeos & Aulas em Português</h2>
+          <h2 class="section-title">🎬 Tutoriais em Vídeo</h2>
+          <p class="muted" style="margin:0;">Aulas de bonecos, montagem e pontos. Os vídeos abrem no YouTube num separador externo para manter a aplicação leve e estável.</p>
           <div id="videoCatChips" class="chip-row">
             <button class="chip active" data-cat="Todos">Todos</button>
+            <button class="chip" data-cat="Costura e Montagem de Peças">Costura e Montagem</button>
+            <button class="chip" data-cat="Bonecos com Cabeça de Madeira e Saias Rodadas">Bonecos & Saias</button>
             <button class="chip" data-cat="Pontos Base">Pontos Base</button>
             <button class="chip" data-cat="Flores em Miniatura">Flores em Miniatura</button>
             <button class="chip" data-cat="Miniaturas Amigurumi">Miniaturas Amigurumi</button>
@@ -55,6 +58,25 @@
           </div>
         </div>
 
+        <!-- Lista de Tutoriais & Vídeos por Categoria -->
+        <div id="videosList" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+        <!-- Adicionar Novo Vídeo Favorito -->
+        <div class="card">
+          <h3 class="section-title">➕ Guardar Novo Vídeo</h3>
+          <input id="vidTitleInput" class="input" placeholder="Título do vídeo (ex: Flor miniatura fácil)">
+          <input id="vidUrlInput" class="input" type="url" placeholder="Cole o link do YouTube (ex: https://youtu.be/...)">
+          <select id="vidCatInput" class="input">
+            <option value="Costura e Montagem de Peças">Costura e Montagem de Peças</option>
+            <option value="Bonecos com Cabeça de Madeira e Saias Rodadas">Bonecos com Cabeça de Madeira e Saias Rodadas</option>
+            <option value="Pontos Base">Pontos Base</option>
+            <option value="Flores em Miniatura">Flores em Miniatura</option>
+            <option value="Miniaturas Amigurumi">Miniaturas Amigurumi</option>
+            <option value="Rendas e Bicos">Rendas e Bicos</option>
+          </select>
+          <button id="btnAddVideo" class="btn btn-rose">💾 Guardar Vídeo Favorito</button>
+        </div>
+
         <!-- Pesquisa Direta YouTube em Português -->
         <div class="card">
           <h3 class="section-title">🔎 Pesquisar Aulas no YouTube (PT)</h3>
@@ -65,22 +87,6 @@
             <a class="btn btn-sm" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=bicos+de+renda+croche+passo+a+passo+portugues">🪡 Rendas e Bicos</a>
           </div>
         </div>
-
-        <!-- Adicionar Novo Vídeo Favorito -->
-        <div class="card">
-          <h3 class="section-title">➕ Guardar Vídeo Favorito</h3>
-          <input id="vidTitleInput" class="input" placeholder="Título do vídeo (ex: Flor miniatura fácil)">
-          <select id="vidCatInput" class="input">
-            <option value="Pontos Base">Pontos Base</option>
-            <option value="Flores em Miniatura">Flores em Miniatura</option>
-            <option value="Miniaturas Amigurumi">Miniaturas Amigurumi</option>
-            <option value="Rendas e Bicos">Rendas e Bicos</option>
-          </select>
-          <input id="vidUrlInput" class="input" type="url" placeholder="Cole o link do YouTube (ex: https://youtu.be/...)">
-          <button id="btnAddVideo" class="btn btn-rose">💾 Guardar Vídeo na Lista</button>
-        </div>
-
-        <div id="videosList" style="display:flex;flex-direction:column;gap:10px;"></div>
       </section>
 
       <!-- SEPARADOR 2: IMAGENS & ESQUEMAS -->
@@ -335,8 +341,8 @@
     <!-- NAVEGAÇÃO INFERIOR -->
     <nav class="bottom-nav">
       <button class="nav-btn active" data-tab="tabVideos">
-        <span class="ico">🎥</span>
-        <span>Aulas</span>
+        <span class="ico">🎬</span>
+        <span>Tutoriais</span>
       </button>
       <button class="nav-btn" data-tab="tabImagens">
         <span class="ico">🖼️</span>

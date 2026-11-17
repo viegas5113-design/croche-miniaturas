@@ -1,4 +1,4 @@
-const CACHE_NAME = 'atelie-croche-v2';
+const CACHE_NAME = 'atelie-croche-v3';
 
 const APP_SHELL = [
   './',
