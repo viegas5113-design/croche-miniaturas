@@ -4,8 +4,14 @@
 (function () {
   'use strict';
 
-  const { getAllPhotos, savePhoto, deletePhoto, getMeta, setMeta, compressImageFile } = window.CrocheDB;
-  const { BUILTIN_SCHEMAS, STITCH_DICTIONARY, THREAD_HOOK_TABLE } = window.CrocheCharts;
+  const {
+    getAllPhotos, savePhoto, deletePhoto, getMeta, setMeta, compressImageFile,
+    getProjectsNotebook, saveProjectsNotebook, getRulerPxPerCm, setRulerPxPerCm,
+    getHourlyRate, setHourlyRate
+  } = window.CrocheDB;
+  const {
+    BUILTIN_SCHEMAS, STITCH_DICTIONARY, HOOK_EQUIVALENCE_TABLE, THREAD_HOOK_TABLE
+  } = window.CrocheCharts;
 
   const DEFAULT_VIDEOS = [
     {
@@ -42,12 +48,18 @@
     }
   ];
 
+  const DEFAULT_PX_PER_CM = 37.79527559;
+
   const state = {
     videoCat: 'Todos',
     videos: [],
     photos: [],
     currentProject: { name: 'O Meu Trabalho', count: 0 },
     savedProjects: [],
+    notebookProjects: [],
+    editingNotebookId: null,
+    pendingNotebookPhoto: '',
+    pxPerCm: DEFAULT_PX_PER_CM,
     zoomScale: 1,
     deferredInstallPrompt: null
   };
@@ -366,6 +378,14 @@
   }
 
   function renderGuideTables() {
+    $('hookEquivBody').innerHTML = HOOK_EQUIVALENCE_TABLE.map((r) => `
+      <tr>
+        <td style="color:var(--rose);font-weight:800;">${escapeHtml(r.mm)}</td>
+        <td><strong>${escapeHtml(r.oldNum)}</strong></td>
+        <td class="muted">${escapeHtml(r.threadType)}</td>
+      </tr>
+    `).join('');
+
     $('threadHookBody').innerHTML = THREAD_HOOK_TABLE.map((r) => `
       <tr>
         <td><strong>${escapeHtml(r.thread)}</strong></td>
@@ -383,6 +403,335 @@
     `).join('');
   }
 
+  // --- Sub-navegação Ferramentas ---
+  document.querySelectorAll('.tool-subbtn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tool-subbtn').forEach((b) => b.classList.remove('active'));
+      document.querySelectorAll('.tool-pane').forEach((p) => p.classList.remove('active'));
+      btn.classList.add('active');
+      $(btn.dataset.tool).classList.add('active');
+    });
+  });
+
+  // --- Caderno de Projetos em Curso (localStorage) ---
+  function resetNotebookForm() {
+    state.editingNotebookId = null;
+    state.pendingNotebookPhoto = '';
+    $('projFormTitle').textContent = '📓 Caderno de Projetos em Curso';
+    $('btnCancelEditProj').style.display = 'none';
+    $('btnSaveNbProject').textContent = '💾 Guardar Ficha de Projeto';
+    $('nbNameInput').value = '';
+    $('nbHookInput').value = '';
+    $('nbRowInput').value = '0';
+    $('nbThreadInput').value = '';
+    $('nbNotesInput').value = '';
+    $('nbPhotoPreviewBox').classList.remove('visible');
+    $('nbPhotoPreviewImg').src = '';
+  }
+
+  async function handleNotebookPhotoSelect(file) {
+    if (!file) return;
+    try {
+      showToast('A comprimir foto...');
+      const dataUrl = await compressImageFile(file, 640, 0.65);
+      state.pendingNotebookPhoto = dataUrl;
+      $('nbPhotoPreviewImg').src = dataUrl;
+      $('nbPhotoPreviewBox').classList.add('visible');
+      showToast('📸 Foto pronta!');
+    } catch (_) {
+      showToast('Não foi possível ler a imagem.');
+    }
+  }
+
+  $('nbPhotoCamInput').addEventListener('change', (e) => {
+    handleNotebookPhotoSelect(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  $('nbPhotoGalInput').addEventListener('change', (e) => {
+    handleNotebookPhotoSelect(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  $('btnRemoveNbPhoto').addEventListener('click', () => {
+    state.pendingNotebookPhoto = '';
+    $('nbPhotoPreviewImg').src = '';
+    $('nbPhotoPreviewBox').classList.remove('visible');
+  });
+
+  $('btnCancelEditProj').addEventListener('click', resetNotebookForm);
+
+  function persistNotebook() {
+    try {
+      saveProjectsNotebook(state.notebookProjects);
+      return true;
+    } catch (_) {
+      showToast('Memória local cheia! Apague uma foto ou projeto antigo.');
+      return false;
+    }
+  }
+
+  $('btnSaveNbProject').addEventListener('click', () => {
+    const name = $('nbNameInput').value.trim();
+    if (!name) {
+      showToast('Indique o nome do projeto.');
+      return;
+    }
+    const hook = $('nbHookInput').value.trim();
+    const row = Math.max(0, parseInt($('nbRowInput').value, 10) || 0);
+    const thread = $('nbThreadInput').value.trim();
+    const notes = $('nbNotesInput').value.trim();
+    const nowStr = new Date().toLocaleDateString('pt-PT');
+
+    const prevList = [...state.notebookProjects];
+    if (state.editingNotebookId) {
+      const idx = state.notebookProjects.findIndex((p) => p.id === state.editingNotebookId);
+      if (idx !== -1) {
+        state.notebookProjects[idx] = {
+          ...state.notebookProjects[idx],
+          name,
+          hook,
+          row,
+          thread,
+          notes,
+          photo: state.pendingNotebookPhoto,
+          updatedAt: nowStr
+        };
+      }
+    } else {
+      state.notebookProjects.unshift({
+        id: 'nb-' + Date.now(),
+        name,
+        hook,
+        row,
+        thread,
+        notes,
+        photo: state.pendingNotebookPhoto,
+        updatedAt: nowStr
+      });
+    }
+
+    if (!persistNotebook()) {
+      state.notebookProjects = prevList;
+      return;
+    }
+
+    const wasEdit = Boolean(state.editingNotebookId);
+    resetNotebookForm();
+    renderNotebookProjects();
+    showToast(wasEdit ? '✏️ Ficha atualizada!' : '📓 Projeto guardado no caderno!');
+  });
+
+  function renderNotebookProjects() {
+    const list = $('projectsNotebookList');
+    if (!state.notebookProjects.length) {
+      list.innerHTML = '<div class="card"><span class="muted">Ainda não tem projetos registados no caderno. Preencha o formulário acima para começar.</span></div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    state.notebookProjects.forEach((p) => {
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.innerHTML = `
+        <div class="project-top">
+          ${p.photo ? `<img class="project-thumb" src="${p.photo}" alt="${escapeHtml(p.name)}" data-zoom="1">` : ''}
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:800;font-size:15.5px;">${escapeHtml(p.name)}</div>
+            <div class="project-meta-chips">
+              ${p.hook ? `<span class="meta-pill">🪡 ${escapeHtml(p.hook)}</span>` : ''}
+              ${p.thread ? `<span class="meta-pill">🧵 ${escapeHtml(p.thread)}</span>` : ''}
+            </div>
+            <div class="muted" style="margin-top:4px;font-size:11.5px;">Atualizado: ${escapeHtml(p.updatedAt || '')}</div>
+          </div>
+        </div>
+        ${p.notes ? `<div class="project-notes">${escapeHtml(p.notes)}</div>` : ''}
+        <div class="project-row-bar">
+          <div>
+            <span class="muted" style="font-size:11.5px;display:block;">Carreira atual</span>
+            <strong style="font-size:20px;color:var(--rose);">${p.row || 0}</strong>
+          </div>
+          <div class="project-row-btns">
+            <button class="btn btn-sm" data-row-delta="-1" style="min-width:46px;">−1</button>
+            <button class="btn btn-rose btn-sm" data-row-delta="1" style="min-width:54px;">+1</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btn-sm" data-edit="${p.id}">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" data-del="${p.id}">🗑️ Apagar</button>
+        </div>
+      `;
+
+      const img = card.querySelector('[data-zoom]');
+      if (img) img.addEventListener('click', () => openZoomModal(p.photo, p.name));
+
+      card.querySelectorAll('[data-row-delta]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const delta = parseInt(btn.dataset.rowDelta, 10);
+          p.row = Math.max(0, (p.row || 0) + delta);
+          p.updatedAt = new Date().toLocaleDateString('pt-PT');
+          persistNotebook();
+          renderNotebookProjects();
+        });
+      });
+
+      card.querySelector('[data-edit]').addEventListener('click', () => {
+        state.editingNotebookId = p.id;
+        state.pendingNotebookPhoto = p.photo || '';
+        $('projFormTitle').textContent = '✏️ Editar Ficha de Projeto';
+        $('btnCancelEditProj').style.display = 'inline-flex';
+        $('btnSaveNbProject').textContent = '💾 Guardar Alterações';
+        $('nbNameInput').value = p.name || '';
+        $('nbHookInput').value = p.hook || '';
+        $('nbRowInput').value = p.row || 0;
+        $('nbThreadInput').value = p.thread || '';
+        $('nbNotesInput').value = p.notes || '';
+        if (p.photo) {
+          $('nbPhotoPreviewImg').src = p.photo;
+          $('nbPhotoPreviewBox').classList.add('visible');
+        } else {
+          $('nbPhotoPreviewImg').src = '';
+          $('nbPhotoPreviewBox').classList.remove('visible');
+        }
+        $('tabProjetos').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      card.querySelector('[data-del]').addEventListener('click', () => {
+        if (!confirm(`Apagar a ficha "${p.name}"?`)) return;
+        state.notebookProjects = state.notebookProjects.filter((x) => x.id !== p.id);
+        if (state.editingNotebookId === p.id) resetNotebookForm();
+        persistNotebook();
+        renderNotebookProjects();
+        showToast('Ficha apagada.');
+      });
+
+      list.appendChild(card);
+    });
+  }
+
+  // --- Régua de Medição (cm) & Calibração (Cartão MB 8,56 cm) ---
+  function renderRuler() {
+    const pxPerCm = state.pxPerCm;
+    const totalCm = 20;
+    const padLeft = 14;
+    const width = Math.ceil(totalCm * pxPerCm + padLeft * 2);
+    const svg = $('rulerSvg');
+    svg.setAttribute('width', width);
+    svg.setAttribute('viewBox', `0 0 ${width} 96`);
+
+    let marks = `<rect x="0" y="0" width="${width}" height="96" fill="#fffdf9"/>`;
+    marks += `<line x1="0" y1="2" x2="${width}" y2="2" stroke="#b85d73" stroke-width="2"/>`;
+
+    const totalMm = totalCm * 10;
+    for (let mm = 0; mm <= totalMm; mm++) {
+      const x = (padLeft + (mm / 10) * pxPerCm).toFixed(2);
+      const isCm = mm % 10 === 0;
+      const isHalf = mm % 5 === 0 && !isCm;
+      const h = isCm ? 42 : (isHalf ? 28 : 16);
+      const stroke = isCm ? '#b85d73' : (isHalf ? '#5b8a72' : '#8c7a74');
+      const sw = isCm ? '2' : (isHalf ? '1.5' : '1');
+      marks += `<line x1="${x}" y1="2" x2="${x}" y2="${h}" stroke="${stroke}" stroke-width="${sw}"/>`;
+      if (isCm) {
+        const cmNum = mm / 10;
+        marks += `<text x="${x}" y="66" text-anchor="middle" font-size="14" font-weight="800" fill="#2d2424" font-family="sans-serif">${cmNum}</text>`;
+        if (cmNum === 0) {
+          marks += `<text x="${x}" y="84" text-anchor="middle" font-size="10" font-weight="700" fill="#b85d73" font-family="sans-serif">cm</text>`;
+        }
+      }
+    }
+    svg.innerHTML = marks;
+
+    const cardWidthPx = Math.round(8.56 * pxPerCm);
+    $('calibCardBox').style.width = `${cardWidthPx}px`;
+    $('calibRange').value = pxPerCm.toFixed(1);
+  }
+
+  function updateRulerStatusBadge(isCalibrated) {
+    const badge = $('rulerStatusBadge');
+    if (isCalibrated) {
+      badge.textContent = 'Calibrada ✓';
+      badge.style.background = 'var(--sage-soft)';
+      badge.style.color = 'var(--sage)';
+    } else {
+      badge.textContent = 'Padrão';
+      badge.style.background = 'var(--card-soft)';
+      badge.style.color = 'var(--muted)';
+    }
+  }
+
+  $('btnToggleCalib').addEventListener('click', () => {
+    $('calibPanel').classList.toggle('open');
+  });
+
+  $('calibRange').addEventListener('input', (e) => {
+    state.pxPerCm = parseFloat(e.target.value);
+    renderRuler();
+  });
+
+  $('btnCalibMinus').addEventListener('click', () => {
+    state.pxPerCm = Math.max(24, +(state.pxPerCm - 0.5).toFixed(1));
+    renderRuler();
+  });
+
+  $('btnCalibPlus').addEventListener('click', () => {
+    state.pxPerCm = Math.min(90, +(state.pxPerCm + 0.5).toFixed(1));
+    renderRuler();
+  });
+
+  $('btnSaveCalib').addEventListener('click', () => {
+    setRulerPxPerCm(state.pxPerCm);
+    updateRulerStatusBadge(true);
+    $('calibPanel').classList.remove('open');
+    showToast('📏 Calibração da régua guardada!');
+  });
+
+  $('btnResetCalib').addEventListener('click', () => {
+    state.pxPerCm = DEFAULT_PX_PER_CM;
+    setRulerPxPerCm(null);
+    updateRulerStatusBadge(false);
+    renderRuler();
+    showToast('Régua reposta para o padrão.');
+  });
+
+  // --- Calculadora de Custo & Preço ---
+  function formatEuro(val) {
+    return val.toFixed(2).replace('.', ',') + ' €';
+  }
+
+  function updateCostCalculator() {
+    const thread = Math.max(0, parseFloat($('calcThreadCost').value) || 0);
+    const other = Math.max(0, parseFloat($('calcOtherCost').value) || 0);
+    const hours = Math.max(0, parseFloat($('calcHours').value) || 0);
+    const rate = Math.max(0, parseFloat($('calcHourlyRate').value) || 0);
+
+    const materials = thread + other;
+    const labor = hours * rate;
+    const total = materials + labor;
+    const suggested = total * 1.3;
+
+    $('calcMaterialsOut').textContent = formatEuro(materials);
+    $('calcLaborOut').textContent = formatEuro(labor);
+    $('calcTotalOut').textContent = formatEuro(total);
+    $('calcSuggestedOut').textContent = formatEuro(suggested);
+  }
+
+  ['calcThreadCost', 'calcOtherCost', 'calcHours'].forEach((id) => {
+    $(id).addEventListener('input', updateCostCalculator);
+  });
+
+  $('calcHourlyRate').addEventListener('input', () => {
+    const rate = Math.max(0, parseFloat($('calcHourlyRate').value) || 0);
+    setHourlyRate(rate);
+    updateCostCalculator();
+  });
+
+  $('btnClearCalc').addEventListener('click', () => {
+    $('calcThreadCost').value = '';
+    $('calcOtherCost').value = '';
+    $('calcHours').value = '';
+    updateCostCalculator();
+  });
+
   // --- Cópia de Segurança JSON ---
   $('btnOpenBackup').addEventListener('click', () => $('backupModal').classList.add('open'));
   $('btnCloseBackup').addEventListener('click', () => $('backupModal').classList.remove('open'));
@@ -392,6 +741,7 @@
       exportedAt: new Date().toISOString(),
       currentProject: state.currentProject,
       savedProjects: state.savedProjects,
+      notebookProjects: state.notebookProjects,
       videos: state.videos,
       photos: state.photos
     };
@@ -419,6 +769,10 @@
           state.savedProjects = data.savedProjects;
           await setMeta('savedProjects', state.savedProjects);
         }
+        if (Array.isArray(data.notebookProjects)) {
+          state.notebookProjects = data.notebookProjects;
+          persistNotebook();
+        }
         if (Array.isArray(data.videos)) {
           state.videos = data.videos;
           await setMeta('videos', state.videos);
@@ -434,6 +788,7 @@
         renderVideos();
         renderUserGallery();
         renderSavedProjects();
+        renderNotebookProjects();
         $('backupModal').classList.remove('open');
         showToast('Cópia de segurança restaurada!');
       } catch (_) {
@@ -461,7 +816,17 @@
     state.savedProjects = await getMeta('savedProjects', []);
     state.currentProject = await getMeta('currentProject', { name: 'O Meu Trabalho', count: 0 });
     state.photos = await getAllPhotos();
+    state.notebookProjects = getProjectsNotebook();
 
+    const savedPx = getRulerPxPerCm();
+    if (savedPx) {
+      state.pxPerCm = savedPx;
+      updateRulerStatusBadge(true);
+    } else {
+      updateRulerStatusBadge(false);
+    }
+
+    $('calcHourlyRate').value = getHourlyRate();
     $('projectNameInput').value = state.currentProject.name || 'O Meu Trabalho';
     $('counterValue').textContent = state.currentProject.count || 0;
 
@@ -469,6 +834,9 @@
     renderBuiltinGallery();
     renderUserGallery();
     renderSavedProjects();
+    renderNotebookProjects();
+    renderRuler();
+    updateCostCalculator();
     renderGuideTables();
   }
 

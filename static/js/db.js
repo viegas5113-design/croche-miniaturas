@@ -9,6 +9,9 @@
   const STORE_PHOTOS = 'fotos';
   const STORE_META = 'dados';
   const LS_META_KEY = 'atelie_croche_meta_v1';
+  const LS_NOTEBOOK_KEY = 'atelie_croche_caderno_v1';
+  const LS_RULER_KEY = 'atelie_croche_regua_px_v1';
+  const LS_RATE_KEY = 'atelie_croche_valor_hora_v1';
 
   let dbInstance = null;
 
@@ -122,19 +125,71 @@
         img.onerror = () => reject(new Error('Imagem inválida'));
         img.onload = () => {
           const scale = Math.min(1, maxWidth / img.width);
-          const w = Math.round(img.width * scale);
-          const h = Math.round(img.height * scale);
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
           const canvas = document.createElement('canvas');
           canvas.width = w;
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', quality));
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          canvas.width = 0;
+          canvas.height = 0;
+          img.src = '';
+          resolve(dataUrl);
         };
         img.src = reader.result;
       };
       reader.readAsDataURL(file);
     });
+  }
+
+  function getProjectsNotebook() {
+    try {
+      const raw = localStorage.getItem(LS_NOTEBOOK_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveProjectsNotebook(list) {
+    localStorage.setItem(LS_NOTEBOOK_KEY, JSON.stringify(list));
+  }
+
+  function getRulerPxPerCm() {
+    try {
+      const val = parseFloat(localStorage.getItem(LS_RULER_KEY));
+      return Number.isFinite(val) && val > 15 && val < 150 ? val : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function setRulerPxPerCm(px) {
+    try {
+      if (px === null) {
+        localStorage.removeItem(LS_RULER_KEY);
+      } else {
+        localStorage.setItem(LS_RULER_KEY, String(px));
+      }
+    } catch (_) {}
+  }
+
+  function getHourlyRate() {
+    try {
+      const val = parseFloat(localStorage.getItem(LS_RATE_KEY));
+      return Number.isFinite(val) && val >= 0 ? val : 10;
+    } catch {
+      return 10;
+    }
+  }
+
+  function setHourlyRate(rate) {
+    try {
+      localStorage.setItem(LS_RATE_KEY, String(rate));
+    } catch (_) {}
   }
 
   global.CrocheDB = {
@@ -143,6 +198,12 @@
     deletePhoto,
     getMeta,
     setMeta,
-    compressImageFile
+    compressImageFile,
+    getProjectsNotebook,
+    saveProjectsNotebook,
+    getRulerPxPerCm,
+    setRulerPxPerCm,
+    getHourlyRate,
+    setHourlyRate
   };
 })(window);

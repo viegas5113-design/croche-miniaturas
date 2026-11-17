@@ -91,7 +91,7 @@
           <input id="photoTitleInput" class="input" placeholder="Nome do esquema ou trabalho (opcional)">
           <label class="btn btn-rose" style="cursor:pointer;">
             📷 Tirar Foto / Escolher da Galeria
-            <input id="photoFileInput" type="file" accept="image/*" capture="environment" style="display:none;">
+            <input id="photoFileInput" type="file" accept="image/*" style="display:none;">
           </label>
         </div>
 
@@ -102,32 +102,216 @@
         <div id="userGallery" class="gallery-grid"></div>
       </section>
 
-      <!-- SEPARADOR 3: GUIA & CONTADOR -->
-      <section id="tabGuia" class="tab-pane">
-        <!-- Contador de Carreiras -->
+      <!-- SEPARADOR 3: CADERNO DE PROJETOS EM CURSO -->
+      <section id="tabProjetos" class="tab-pane">
         <div class="card">
-          <h2 class="section-title">🧶 Contador de Carreiras</h2>
-          <div style="display:flex;gap:8px;">
-            <input id="projectNameInput" class="input" placeholder="Nome do projeto atual (ex: Bico Toalha)">
-            <button id="btnSaveProject" class="btn btn-sage btn-sm">💾</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <h2 id="projFormTitle" class="section-title">📓 Caderno de Projetos em Curso</h2>
+            <button id="btnCancelEditProj" class="btn btn-sm" style="display:none;">✕ Cancelar</button>
+          </div>
+          <p class="muted" style="margin:0;">Registe os seus trabalhos em andamento com agulha, linha, carreira, notas e foto opcional (guardado no dispositivo).</p>
+
+          <div>
+            <label class="field-label" for="nbNameInput">Nome do projeto</label>
+            <input id="nbNameInput" class="input" placeholder="Ex: Bico da toalha de linho">
           </div>
 
-          <div class="counter-box">
-            <span class="muted">Carreira Atual</span>
-            <div id="counterValue" class="counter-num">0</div>
-            <div class="counter-btns">
-              <button id="btnCountMinus" class="counter-big-btn" style="background:#f3e5df;color:var(--text);">−1</button>
-              <button id="btnCountPlus" class="counter-big-btn" style="background:var(--rose);color:#fff;">+1 Carreira</button>
-              <button id="btnCountReset" class="counter-big-btn" style="background:#fdecec;color:var(--danger);font-size:15px;">Zerar</button>
+          <div class="form-row-2">
+            <div>
+              <label class="field-label" for="nbHookInput">N.º da agulha</label>
+              <input id="nbHookInput" class="input" placeholder="Ex: 1,25 mm (n.º 4)">
+            </div>
+            <div>
+              <label class="field-label" for="nbRowInput">Carreira atual</label>
+              <input id="nbRowInput" class="input" type="number" min="0" value="0" inputmode="numeric">
             </div>
           </div>
 
-          <div id="savedProjectsList" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <div>
+            <label class="field-label" for="nbThreadInput">Referência / cor da linha</label>
+            <input id="nbThreadInput" class="input" placeholder="Ex: Anchor n.º 40 · Branco 0001">
+          </div>
+
+          <div>
+            <label class="field-label" for="nbNotesInput">Notas livres</label>
+            <textarea id="nbNotesInput" class="input" placeholder="Ex: 12 arcos de 5 corr por motivo; repetir a partir da 4.ª carr."></textarea>
+          </div>
+
+          <div>
+            <label class="field-label">Foto opcional do trabalho</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <label class="btn" style="cursor:pointer;">
+                📷 Tirar Foto
+                <input id="nbPhotoCamInput" type="file" accept="image/*" capture="environment" style="display:none;">
+              </label>
+              <label class="btn" style="cursor:pointer;">
+                🖼️ Da Galeria
+                <input id="nbPhotoGalInput" type="file" accept="image/*" style="display:none;">
+              </label>
+            </div>
+          </div>
+
+          <div id="nbPhotoPreviewBox" class="photo-preview-box">
+            <img id="nbPhotoPreviewImg" src="" alt="Pré-visualização">
+            <div style="flex:1;">
+              <strong style="font-size:13px;">Foto pronta a guardar</strong>
+              <div class="muted">Comprimida para poupar memória</div>
+            </div>
+            <button id="btnRemoveNbPhoto" type="button" class="btn btn-danger btn-sm">🗑️</button>
+          </div>
+
+          <button id="btnSaveNbProject" class="btn btn-rose">💾 Guardar Ficha de Projeto</button>
+        </div>
+
+        <h3 class="section-title" style="padding:0 4px;">🧵 Trabalhos em Andamento</h3>
+        <div id="projectsNotebookList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </section>
+
+      <!-- SEPARADOR 4: FERRAMENTAS (CONTADOR, RÉGUA, CALCULADORA) -->
+      <section id="tabFerramentas" class="tab-pane">
+        <div class="tool-subnav">
+          <button class="tool-subbtn active" data-tool="toolContador">🧶 Contador</button>
+          <button class="tool-subbtn" data-tool="toolRegua">📏 Régua</button>
+          <button class="tool-subbtn" data-tool="toolCalc">💶 Custo</button>
+        </div>
+
+        <!-- SUB-FERRAMENTA 1: CONTADOR DE CARREIRAS -->
+        <div id="toolContador" class="tool-pane active">
+          <div class="card">
+            <h2 class="section-title">🧶 Contador de Carreiras</h2>
+            <div style="display:flex;gap:8px;">
+              <input id="projectNameInput" class="input" placeholder="Nome do projeto atual (ex: Bico Toalha)">
+              <button id="btnSaveProject" class="btn btn-sage btn-sm">💾</button>
+            </div>
+
+            <div class="counter-box">
+              <span class="muted">Carreira Atual</span>
+              <div id="counterValue" class="counter-num">0</div>
+              <div class="counter-btns">
+                <button id="btnCountMinus" class="counter-big-btn" style="background:#f3e5df;color:var(--text);">−1</button>
+                <button id="btnCountPlus" class="counter-big-btn" style="background:var(--rose);color:#fff;">+1 Carreira</button>
+                <button id="btnCountReset" class="counter-big-btn" style="background:#fdecec;color:var(--danger);font-size:15px;">Zerar</button>
+              </div>
+            </div>
+
+            <div id="savedProjectsList" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+
+        <!-- SUB-FERRAMENTA 2: RÉGUA DE MEDIÇÃO NO ECRÃ (CM) -->
+        <div id="toolRegua" class="tool-pane">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <h2 class="section-title">📏 Régua de Medição (cm)</h2>
+              <span id="rulerStatusBadge" class="meta-pill">Padrão</span>
+            </div>
+            <p class="muted" style="margin:0;">Encoste a sua peça ou amostra ao rebordo da régua. Deslize para a esquerda para medir peças maiores.</p>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="btnToggleCalib" class="btn btn-sage btn-sm" style="flex:1;">🎯 Calibrar com Cartão MB (8,56 cm)</button>
+            </div>
+
+            <!-- Painel de Calibração -->
+            <div id="calibPanel" class="calib-panel">
+              <strong style="font-size:13.5px;">🎯 Calibração Exata do Ecrã</strong>
+              <span class="muted">Coloque um cartão multibanco padrão (8,56 cm de largura) sobre o retângulo rosa e ajuste até ficarem exatamente iguais:</span>
+
+              <div class="calib-card-wrap">
+                <div id="calibCardBox" class="calib-card-box">Cartão MB · 8,56 cm</div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button id="btnCalibMinus" class="btn btn-sm" style="min-width:48px;">➖</button>
+                <input id="calibRange" type="range" min="24" max="90" step="0.2" style="flex:1;accent-color:var(--rose);">
+                <button id="btnCalibPlus" class="btn btn-sm" style="min-width:48px;">➕</button>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button id="btnSaveCalib" class="btn btn-rose btn-sm" style="flex:1;">✓ Guardar Calibração</button>
+                <button id="btnResetCalib" class="btn btn-sm">↺ Repor Padrão</button>
+              </div>
+            </div>
+
+            <!-- Régua Horizontal -->
+            <div class="ruler-scroll">
+              <svg id="rulerSvg" class="ruler-svg" height="96"></svg>
+            </div>
+            <span class="muted" style="text-align:center;">Cada risco pequeno = 1 mm · Risco médio = 0,5 cm · Número = 1 cm</span>
+          </div>
+        </div>
+
+        <!-- SUB-FERRAMENTA 3: CALCULADORA DE CUSTO & PREÇO -->
+        <div id="toolCalc" class="tool-pane">
+          <div class="card">
+            <h2 class="section-title">💶 Calculadora de Custo & Preço</h2>
+            <p class="muted" style="margin:0;">Calcule o custo real da peça com base nas linhas, materiais e tempo de trabalho.</p>
+
+            <div class="form-row-2">
+              <div>
+                <label class="field-label" for="calcThreadCost">Linhas / Novelos (€)</label>
+                <input id="calcThreadCost" class="input" type="number" min="0" step="0.10" placeholder="0.00" inputmode="decimal">
+              </div>
+              <div>
+                <label class="field-label" for="calcOtherCost">Outros materiais (€)</label>
+                <input id="calcOtherCost" class="input" type="number" min="0" step="0.10" placeholder="0.00" inputmode="decimal">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div>
+                <label class="field-label" for="calcHours">Horas de trabalho (h)</label>
+                <input id="calcHours" class="input" type="number" min="0" step="0.25" placeholder="0.0" inputmode="decimal">
+              </div>
+              <div>
+                <label class="field-label" for="calcHourlyRate">Valor / hora (€/h)</label>
+                <input id="calcHourlyRate" class="input" type="number" min="0" step="0.50" value="10" inputmode="decimal">
+              </div>
+            </div>
+
+            <div class="calc-result">
+              <div class="calc-line">
+                <span>Materiais (linhas + outros)</span>
+                <strong id="calcMaterialsOut">0,00 €</strong>
+              </div>
+              <div class="calc-line">
+                <span>Mão-de-obra</span>
+                <strong id="calcLaborOut">0,00 €</strong>
+              </div>
+              <div class="calc-total-row">
+                <span>Custo Total da Peça</span>
+                <span id="calcTotalOut">0,00 €</span>
+              </div>
+              <div class="calc-line muted" style="padding-top:4px;">
+                <span>Sugestão de venda (+30% margem)</span>
+                <strong id="calcSuggestedOut">0,00 €</strong>
+              </div>
+            </div>
+
+            <button id="btnClearCalc" class="btn">🧹 Limpar Valores</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEPARADOR 5: GUIA RÁPIDO DE AGULHAS & SÍMBOLOS -->
+      <section id="tabGuia" class="tab-pane">
+        <!-- Tabela de Equivalência de Agulhas -->
+        <div class="card">
+          <h2 class="section-title">🪡 Equivalência de Agulhas & Fios</h2>
+          <table class="ref-table">
+            <thead>
+              <tr>
+                <th>Medida (mm)</th>
+                <th>Num. Antiga</th>
+                <th>Tipo de Fio</th>
+              </tr>
+            </thead>
+            <tbody id="hookEquivBody"></tbody>
+          </table>
         </div>
 
         <!-- Tabela Linhas & Agulhas para Miniaturas -->
         <div class="card">
-          <h2 class="section-title">🪡 Tabela Prática: Linhas Finas & Agulhas</h2>
+          <h2 class="section-title">🧵 Linhas Finas para Miniaturas & Renda</h2>
           <table class="ref-table">
             <thead>
               <tr>
@@ -142,7 +326,7 @@
 
         <!-- Dicionário Ilustrado dos Pontos -->
         <div class="card">
-          <h2 class="section-title">📖 Dicionário Ilustrado de Pontos</h2>
+          <h2 class="section-title">📖 Símbolos de Gráficos & Pontos</h2>
           <div id="stitchDictGrid" class="stitch-grid"></div>
         </div>
       </section>
@@ -152,15 +336,23 @@
     <nav class="bottom-nav">
       <button class="nav-btn active" data-tab="tabVideos">
         <span class="ico">🎥</span>
-        <span>Vídeos & Aulas</span>
+        <span>Aulas</span>
       </button>
       <button class="nav-btn" data-tab="tabImagens">
         <span class="ico">🖼️</span>
         <span>Esquemas</span>
       </button>
+      <button class="nav-btn" data-tab="tabProjetos">
+        <span class="ico">📓</span>
+        <span>Projetos</span>
+      </button>
+      <button class="nav-btn" data-tab="tabFerramentas">
+        <span class="ico">🧰</span>
+        <span>Ferramentas</span>
+      </button>
       <button class="nav-btn" data-tab="tabGuia">
-        <span class="ico">🧶</span>
-        <span>Guia & Contador</span>
+        <span class="ico">📖</span>
+        <span>Guia</span>
       </button>
     </nav>
   </div>

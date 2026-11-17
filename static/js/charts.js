@@ -132,10 +132,27 @@
       svg: `<svg viewBox="0 0 48 48"><line x1="24" y1="9" x2="24" y2="39" stroke="#b85d73" stroke-width="3" stroke-linecap="round"/><line x1="14" y1="9" x2="34" y2="9" stroke="#b85d73" stroke-width="3" stroke-linecap="round"/><line x1="17" y1="25" x2="31" y2="20" stroke="#b85d73" stroke-width="2.8" stroke-linecap="round"/></svg>`
     },
     {
+      name: 'Ponto Alto Duplo (pad)',
+      desc: 'Duas laçadas na agulha; ideal para rendas abertas, folhas e pétalas longas.',
+      svg: `<svg viewBox="0 0 48 48"><line x1="24" y1="7" x2="24" y2="41" stroke="#b85d73" stroke-width="3" stroke-linecap="round"/><line x1="14" y1="7" x2="34" y2="7" stroke="#b85d73" stroke-width="3" stroke-linecap="round"/><line x1="17" y1="21" x2="31" y2="16" stroke="#b85d73" stroke-width="2.6" stroke-linecap="round"/><line x1="17" y1="29" x2="31" y2="24" stroke="#b85d73" stroke-width="2.6" stroke-linecap="round"/></svg>`
+    },
+    {
       name: 'Ponto Picô (picô)',
       desc: '3 correntinhas fechadas com pbx na base; cria pontas delicadas na renda.',
       svg: `<svg viewBox="0 0 48 48"><path d="M12 34 Q24 8 36 34" fill="none" stroke="#5b8a72" stroke-width="2.6"/><circle cx="24" cy="17" r="4.5" fill="none" stroke="#b85d73" stroke-width="2.6"/><circle cx="24" cy="34" r="3" fill="#2d2424"/></svg>`
     }
+  ];
+
+  const HOOK_EQUIVALENCE_TABLE = [
+    { mm: '0,50 mm', oldNum: 'N.º 14 / 12', threadType: 'Linha n.º 80–100 (micro-croché, renda antiga)' },
+    { mm: '0,60 mm', oldNum: 'N.º 12 / 10', threadType: 'Linha n.º 60–80 (flores micro, brincos)' },
+    { mm: '0,75 mm', oldNum: 'N.º 10 / 8', threadType: 'Linha n.º 40–60 (renda fina, miniaturas)' },
+    { mm: '1,00 mm', oldNum: 'N.º 6 / 7', threadType: 'Linha n.º 20–40 (bicos de renda, toalhinhas)' },
+    { mm: '1,25 mm', oldNum: 'N.º 4 / 5', threadType: 'Linha n.º 10–20 (bicos, flores, amigurumi fino)' },
+    { mm: '1,50 mm', oldNum: 'N.º 2 / 3', threadType: 'Linha n.º 8–10 / Perlé 5 (bases, flores)' },
+    { mm: '1,75 mm', oldNum: 'N.º 0 / 1', threadType: 'Algodão fino (Cléa dupla, Camila Fina)' },
+    { mm: '2,00 – 2,50 mm', oldNum: 'N.º 00 / B-1', threadType: 'Algodão médio (Anne, Charme, amigurumi)' },
+    { mm: '3,00 – 3,50 mm', oldNum: 'D-3 / E-4', threadType: 'Algodão grosso / lã fina' }
   ];
 
   const THREAD_HOOK_TABLE = [
@@ -149,6 +166,7 @@
   global.CrocheCharts = {
     BUILTIN_SCHEMAS,
     STITCH_DICTIONARY,
+    HOOK_EQUIVALENCE_TABLE,
     THREAD_HOOK_TABLE
   };
 })(window);
